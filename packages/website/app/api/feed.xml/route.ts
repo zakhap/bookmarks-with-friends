@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getLatestBookmarks } from '@/lib/db';
+import { getChannelContents } from '@/lib/arena';
 
 function escapeXml(unsafe: string): string {
   return unsafe
@@ -11,7 +11,8 @@ function escapeXml(unsafe: string): string {
 }
 
 export async function GET() {
-  const bookmarks = await getLatestBookmarks(50);
+  const channelSlug = process.env.ARENA_CHANNEL_SLUG || 'bookmarks-with-friends';
+  const bookmarks = await getChannelContents(channelSlug);
 
   const baseUrl = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`

@@ -1,5 +1,8 @@
-import { trpc } from '@/lib/trpc-client';
+import { getChannelContents } from '@/lib/arena';
 import type { Bookmark } from '@bookmarks/shared';
+
+// Revalidate every 5 minutes (300 seconds)
+export const revalidate = 300;
 
 function formatDate(date: Date): string {
   const d = new Date(date);
@@ -35,6 +38,9 @@ function BookmarkLink({ bookmark, isFeatured }: { bookmark: Bookmark; isFeatured
           fontSize: isFeatured ? '24px' : '14px',
           fontWeight: isFeatured ? 'bold' : 'normal',
           display: 'block',
+          wordWrap: 'break-word',
+          overflowWrap: 'break-word',
+          hyphens: 'auto',
         }}
       >
         {bookmark.title.toUpperCase()}
@@ -45,6 +51,8 @@ function BookmarkLink({ bookmark, isFeatured }: { bookmark: Bookmark; isFeatured
           color: '#666',
           marginTop: '4px',
           fontStyle: 'italic',
+          wordWrap: 'break-word',
+          overflowWrap: 'break-word',
         }}>
           {bookmark.note}
         </div>
@@ -57,19 +65,20 @@ function BookmarkLink({ bookmark, isFeatured }: { bookmark: Bookmark; isFeatured
 }
 
 export default async function Home() {
-  const data = await trpc.bookmarks.list.query();
+  const channelSlug = process.env.ARENA_CHANNEL_SLUG || 'bookmarks-with-friends';
+  const bookmarks = await getChannelContents(channelSlug);
   const now = new Date();
 
   // Split bookmarks: first one is featured, rest are regular
-  const featured = data.bookmarks[0];
-  const leftColumn = data.bookmarks.slice(1, 26); // Next 25
-  const rightColumn = data.bookmarks.slice(26, 50); // Last 24
+  const featured = bookmarks[0];
+  const leftColumn = bookmarks.slice(1, 26); // Next 25
+  const rightColumn = bookmarks.slice(26, 50); // Last 24
 
   return (
     <div style={{
-      maxWidth: '980px',
+      maxWidth: '1200px',
       margin: '0 auto',
-      padding: '10px 15px',
+      padding: '10px 20px',
     }}>
       {/* Header */}
       <div style={{
@@ -110,7 +119,7 @@ export default async function Home() {
         </div>
       </div>
 
-      {data.bookmarks.length === 0 ? (
+      {bookmarks.length === 0 ? (
         <div style={{
           textAlign: 'center',
           padding: '60px 20px',
@@ -119,7 +128,7 @@ export default async function Home() {
         }}>
           <p style={{ margin: 0 }}>NO BOOKMARKS YET</p>
           <p style={{ margin: '8px 0 0 0', fontSize: '12px' }}>
-            Install the Chrome extension to get started
+            Add bookmarks to your Are.na channel to get started
           </p>
         </div>
       ) : (
@@ -139,7 +148,7 @@ export default async function Home() {
           <div style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
-            gap: '30px',
+            gap: '40px',
           }}>
             {/* Left Column */}
             <div>
@@ -177,7 +186,7 @@ export default async function Home() {
           </a>
         </div>
         <div style={{ color: '#CCCCCC' }}>
-          {data.bookmarks.length} BOOKMARKS • © {now.getFullYear()}
+          {bookmarks.length} BOOKMARKS • © {now.getFullYear()}
         </div>
       </div>
     </div>

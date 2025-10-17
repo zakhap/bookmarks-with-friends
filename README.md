@@ -1,25 +1,31 @@
 # Bookmarks with Friends
 
-A simple group bookmarking site where friends can save and share URLs via a Chrome extension. Features a Drudge Report-inspired Web 1.0 aesthetic.
+A simple group bookmarking site that displays bookmarks from an Are.na channel in a Drudge Report-inspired Web 1.0 aesthetic.
 
 ## Architecture
 
-- **Monorepo**: pnpm workspaces with TypeScript
+- **Backend**: Are.na API (no database needed!)
 - **Website**: Next.js 15 (App Router) deployed to Vercel
-- **Database**: Neon Postgres (via Vercel Storage)
-- **API**: tRPC for type-safe API calls
-- **Extension**: Chrome Extension (Manifest V3)
+- **Bookmarking**: Use Are.na's official Chrome extension
+- **Monorepo**: pnpm workspaces with TypeScript
 
-## Project Structure
+## How It Works
 
-```
-bookmarks-with-friends/
-├── packages/
-│   ├── shared/          # Shared TypeScript types
-│   ├── website/         # Next.js website + API
-│   └── extension/       # Chrome extension
-└── pnpm-workspace.yaml
-```
+1. **Add bookmarks**: Use [Are.na's Chrome extension](https://chrome.google.com/webstore/detail/arena/lebjfedlgfngdohfjgmempkjpmkpmcnb) to save links to your Are.na channel
+2. **Website fetches**: The Next.js site reads from the Are.na API
+3. **Display**: Bookmarks are shown in Drudge Report style (featured + two columns)
+4. **RSS feed**: Generated from Are.na channel contents
+
+## Features
+
+- ✅ Drudge Report / Web 1.0 aesthetic
+- ✅ Featured headline (most recent bookmark in large red text)
+- ✅ Two-column layout for remaining bookmarks
+- ✅ RSS feed at `/api/feed.xml`
+- ✅ 5-minute caching for fast page loads
+- ✅ Shows last 50 bookmarks
+- ✅ Mobile responsive
+- ✅ No database needed (Are.na handles storage)
 
 ## Getting Started
 
@@ -27,8 +33,8 @@ bookmarks-with-friends/
 
 - Node.js 20+
 - pnpm 10+
+- An Are.na account
 - Vercel account (for deployment)
-- Neon Postgres database (via Vercel Storage)
 
 ### Installation
 
@@ -37,76 +43,86 @@ bookmarks-with-friends/
 pnpm install
 ```
 
-### Development
+### Setup
 
-```bash
-# Run website dev server
-cd packages/website
-pnpm dev
-
-# Build extension
-cd packages/extension
-pnpm build
-```
-
-### Environment Variables
+1. **Create an Are.na channel** (e.g., "bookmarks-with-friends")
+2. **Get the channel slug** from the URL: `https://www.are.na/username/channel-slug`
+3. **Install Are.na Chrome extension** from the Chrome Web Store
+4. **Configure environment variables**:
 
 Create `packages/website/.env.local`:
 
 ```env
-# Neon Postgres (pulled from Vercel)
-POSTGRES_URL="postgresql://..."
-
-# Your shared API key
-API_KEY="your_secret_key_here"
+ARENA_CHANNEL_SLUG=your-channel-slug-here
 ```
+
+### Development
+
+```bash
+cd packages/website
+pnpm dev
+```
+
+Visit http://localhost:3000
+
+### Adding Bookmarks
+
+1. Install the [Are.na Chrome extension](https://chrome.google.com/webstore/detail/arena/lebjfedlgfngdohfjgmempkjpmkpmcnb)
+2. Sign in to your Are.na account
+3. Navigate to any webpage
+4. Click the Are.na extension icon
+5. Add to your bookmarks channel
+6. Refresh your local site to see the new bookmark
 
 ## Deployment
 
-### Website
+### Deploy to Vercel
 
 1. Push code to GitHub
 2. Import project to Vercel
-3. Add Neon Postgres from Vercel Storage marketplace
-4. Add `API_KEY` environment variable in Vercel dashboard
-5. Deploy!
+3. Add environment variable in Vercel dashboard:
+   - `ARENA_CHANNEL_SLUG`: Your Are.na channel slug
+4. Deploy!
 
-### Chrome Extension
+## Caching Strategy
 
-1. Build the extension: `cd packages/extension && pnpm build`
-2. Add icon files (icon16.png, icon48.png, icon128.png) to `packages/extension/`
-3. Rebuild: `pnpm build`
-4. Load unpacked extension from `packages/extension/dist` in Chrome
-5. Configure with your Vercel URL and API key
+- **Homepage**: Revalidates every 5 minutes (Next.js ISR)
+- **RSS Feed**: 5-minute HTTP cache headers
+- **Are.na API**: Called on-demand, cached by Next.js
 
-See `packages/extension/README.md` for detailed instructions.
+This means most visitors get a fast, cached page while new bookmarks appear within 5 minutes.
 
-## Features
+## Project Structure
 
-- ✅ Save bookmarks from any webpage
-- ✅ View last 50 bookmarks on homepage
-- ✅ RSS feed for bookmark updates
-- ✅ Simple API key authentication
-- ✅ Web 1.0 / Drudge Report aesthetic
-- ✅ Mobile responsive
-- ✅ Recent bookmarks highlighted (< 1 hour old)
+```
+bookmarks-with-friends/
+├── packages/
+│   ├── shared/          # Shared TypeScript types
+│   └── website/         # Next.js site
+│       ├── app/
+│       │   ├── page.tsx      # Homepage (Drudge Report style)
+│       │   └── api/feed.xml/  # RSS feed
+│       └── lib/
+│           └── arena.ts       # Are.na API client
+└── pnpm-workspace.yaml
+```
 
 ## Tech Stack
 
-- **Frontend**: Next.js 15, React 19, Tailwind CSS
-- **Backend**: Next.js API Routes, tRPC v11
-- **Database**: Neon Postgres (serverless)
-- **Validation**: Zod
+- **Frontend**: Next.js 15, React 19, inline styles
+- **Backend**: Are.na API via `are.na` npm package
 - **Deployment**: Vercel
-- **Extension**: TypeScript, Webpack
+- **No database**: Are.na handles all storage
+- **No custom extension**: Use Are.na's official Chrome extension
 
-## MVP Limitations
+## Why Are.na?
 
-- Single shared API key (no individual user accounts)
-- No search functionality
-- No pagination (shows last 50 bookmarks only)
-- No tags or categories
-- No bookmark editing or deletion
+- **No database setup** - Are.na stores everything
+- **Beautiful web UI** - Visual interface for managing bookmarks
+- **Collaborative** - Multiple people can add to the channel
+- **Rich content** - Beyond just links (images, text, PDFs)
+- **Well-maintained API** - Official npm package
+- **Existing Chrome extension** - No need to build/maintain our own
 
 ## License
 
