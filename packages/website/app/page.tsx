@@ -1,78 +1,24 @@
 import { getChannelContents } from '@/lib/arena';
 import type { Bookmark } from '@/lib/types';
+import BookmarkItem from './BookmarkItem';
+import ImageGallery from './ImageGallery';
 
 // Revalidate every 5 minutes (300 seconds)
 export const revalidate = 300;
-
-function formatDate(date: Date): string {
-  const d = new Date(date);
-  return d.toLocaleDateString('en-US', {
-    month: '2-digit',
-    day: '2-digit',
-    year: '2-digit',
-  });
-}
-
-function formatTime(date: Date): string {
-  const d = new Date(date);
-  return d.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-function BookmarkLink({ bookmark, isFeatured }: { bookmark: Bookmark; isFeatured?: boolean }) {
-  return (
-    <div style={{
-      marginBottom: isFeatured ? '16px' : '10px',
-      lineHeight: '1.3',
-      textAlign: isFeatured ? 'center' : 'left',
-    }}>
-      <a
-        href={bookmark.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-          color: isFeatured ? '#CC0000' : '#000000',
-          textDecoration: 'underline',
-          fontSize: isFeatured ? '24px' : '14px',
-          fontWeight: isFeatured ? 'bold' : 'normal',
-          display: 'block',
-          wordWrap: 'break-word',
-          overflowWrap: 'break-word',
-          hyphens: 'auto',
-        }}
-      >
-        {bookmark.title.toUpperCase()}
-      </a>
-      {bookmark.note && (
-        <div style={{
-          fontSize: '12px',
-          color: '#666',
-          marginTop: '4px',
-          fontStyle: 'italic',
-          wordWrap: 'break-word',
-          overflowWrap: 'break-word',
-        }}>
-          {bookmark.note}
-        </div>
-      )}
-      <div style={{ fontSize: '10px', color: '#999', marginTop: '2px' }}>
-        {bookmark.savedBy} • {formatDate(bookmark.savedAt)} {formatTime(bookmark.savedAt)}
-      </div>
-    </div>
-  );
-}
 
 export default async function Home() {
   const channelSlug = process.env.ARENA_CHANNEL_SLUG || 'bookmarks-with-friends';
   const bookmarks = await getChannelContents(channelSlug);
   const now = new Date();
 
-  // Split bookmarks: first one is featured, rest are regular
-  const featured = bookmarks[0];
-  const leftColumn = bookmarks.slice(1, 26); // Next 25
-  const rightColumn = bookmarks.slice(26, 50); // Last 24
+  // Organize bookmarks by type
+  const links = bookmarks.filter(b => b.type === 'link');
+  const images = bookmarks.filter(b => b.type === 'image');
+  const textBlocks = bookmarks.filter(b => b.type === 'text');
+
+  // For links: split into two columns
+  const leftColumnLinks = links.slice(0, Math.ceil(links.length / 2));
+  const rightColumnLinks = links.slice(Math.ceil(links.length / 2));
 
   return (
     <div style={{
@@ -133,37 +79,113 @@ export default async function Home() {
         </div>
       ) : (
         <>
-          {/* Featured/Top Bookmark */}
-          {featured && (
-            <div style={{
-              borderBottom: '1px solid #CCCCCC',
-              paddingBottom: '16px',
-              marginBottom: '16px',
-            }}>
-              <BookmarkLink bookmark={featured} isFeatured={true} />
-            </div>
+          {/* LINKS SECTION */}
+          {links.length > 0 && (
+            <section style={{ marginBottom: '40px' }}>
+              <h2 style={{
+                fontSize: '18px',
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                borderBottom: '2px solid #000',
+                paddingBottom: '8px',
+                marginBottom: '16px',
+                letterSpacing: '1px',
+              }}>
+                Links
+              </h2>
+
+              {/* Two Column Layout for Links */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '40px',
+              }}>
+                <div>
+                  {leftColumnLinks.map((bookmark) => (
+                    <BookmarkItem key={bookmark.id} bookmark={bookmark} />
+                  ))}
+                </div>
+                <div>
+                  {rightColumnLinks.map((bookmark) => (
+                    <BookmarkItem key={bookmark.id} bookmark={bookmark} />
+                  ))}
+                </div>
+              </div>
+            </section>
           )}
 
-          {/* Two Column Layout */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '40px',
-          }}>
-            {/* Left Column */}
-            <div>
-              {leftColumn.map((bookmark) => (
-                <BookmarkLink key={bookmark.id} bookmark={bookmark} />
-              ))}
-            </div>
+          {/* IMAGES SECTION */}
+          {images.length > 0 && (
+            <ImageGallery images={images} />
+          )}
 
-            {/* Right Column */}
-            <div>
-              {rightColumn.map((bookmark) => (
-                <BookmarkLink key={bookmark.id} bookmark={bookmark} />
-              ))}
-            </div>
-          </div>
+          {/* TEXT BLOCKS SECTION */}
+          {textBlocks.length > 0 && (
+            <section style={{ marginBottom: '40px' }}>
+              <h2 style={{
+                fontSize: '18px',
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                borderBottom: '2px solid #000',
+                paddingBottom: '8px',
+                marginBottom: '16px',
+                letterSpacing: '1px',
+              }}>
+                Text
+              </h2>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '20px',
+              }}>
+                {textBlocks.map((bookmark) => (
+                  <div
+                    key={bookmark.id}
+                    style={{
+                      padding: '16px',
+                      border: '1px solid #CCCCCC',
+                      backgroundColor: '#FAFAFA',
+                    }}
+                  >
+                    <h3 style={{
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      marginTop: '0',
+                      marginBottom: '8px',
+                    }}>
+                      {bookmark.title}
+                    </h3>
+                    {bookmark.note && (
+                      <div style={{
+                        fontSize: '14px',
+                        lineHeight: '1.6',
+                        marginBottom: '8px',
+                        whiteSpace: 'pre-wrap',
+                      }}>
+                        {bookmark.note}
+                      </div>
+                    )}
+                    <div style={{
+                      fontSize: '10px',
+                      color: '#999',
+                      marginTop: '8px',
+                      borderTop: '1px solid #DDD',
+                      paddingTop: '8px',
+                    }}>
+                      {bookmark.savedBy} • {new Date(bookmark.savedAt).toLocaleDateString('en-US', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        year: '2-digit',
+                      })} {new Date(bookmark.savedAt).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </>
       )}
 
