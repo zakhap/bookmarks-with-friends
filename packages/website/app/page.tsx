@@ -1,5 +1,5 @@
 import { getChannelContents } from '@/lib/arena';
-import type { Bookmark } from '@bookmarks/shared';
+import type { Bookmark } from '@/lib/types';
 
 // Revalidate every 5 minutes (300 seconds)
 export const revalidate = 300;

@@ -1,5 +1,5 @@
 const Arena = require('are.na');
-import type { Bookmark } from '@bookmarks/shared';
+import type { Bookmark } from './types';
 
 const arena = new Arena();
 

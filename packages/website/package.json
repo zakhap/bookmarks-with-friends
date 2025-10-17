@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@bookmarks/shared": "workspace:*",
     "are.na": "^0.1.5",
     "next": "15.5.5",
     "react": "19.1.0",

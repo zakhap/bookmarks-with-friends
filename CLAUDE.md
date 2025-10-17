@@ -4,120 +4,119 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A group bookmarking site where friends can save URLs via a Chrome extension. The site displays the last 50 bookmarks with an RSS feed. This is built as a monorepo using pnpm workspaces with shared TypeScript types across all packages.
+A simple group bookmarking site that displays bookmarks from an Are.na channel in a Drudge Report-inspired Web 1.0 aesthetic. No database required - all data is stored in and fetched from Are.na.
 
-## Monorepo Structure
+## Architecture
+
+- **Backend**: Are.na API (no database!)
+- **Website**: Next.js 15 (App Router) deployed to Vercel
+- **Bookmarking**: Use Are.na's official Chrome extension
+- **Monorepo**: pnpm workspace with single website package
+
+## Project Structure
 
 ```
-bookmarks-app/
+bookmarks-with-friends/
 ├── packages/
-│   ├── shared/          # Shared TypeScript types
-│   ├── website/         # Next.js App Router (deployed to Vercel)
-│   └── extension/       # Chrome Extension (Manifest V3)
+│   └── website/              # Next.js application
+│       ├── app/
+│       │   ├── page.tsx          # Homepage (Drudge Report style)
+│       │   ├── layout.tsx        # Root layout with Web 1.0 styling
+│       │   └── api/feed.xml/     # RSS feed endpoint
+│       └── lib/
+│           ├── arena.ts          # Are.na API client
+│           └── types.ts          # TypeScript types
 ├── pnpm-workspace.yaml
 └── package.json
 ```
 
-## Tech Stack
-
-- **Monorepo**: pnpm workspaces
-- **Website**: Next.js 14+ with App Router, tRPC v10, Tailwind CSS
-- **Database**: Vercel Postgres (free tier)
-- **API**: tRPC for type-safe API between extension and server
-- **Extension**: TypeScript Chrome Extension (Manifest V3)
-
 ## Development Commands
 
-### Setup
+### From Root
 ```bash
-pnpm install              # Install all dependencies across workspace
+pnpm dev          # Run Next.js dev server
+pnpm build        # Build for production
+pnpm lint         # Run ESLint
 ```
 
-### Website Development
+### From packages/website
 ```bash
-cd packages/website
-pnpm dev                  # Run Next.js dev server (usually http://localhost:3000)
-pnpm build               # Build for production
-pnpm lint                # Run ESLint
+pnpm dev          # Run Next.js dev server
+pnpm build        # Build for production
+pnpm start        # Start production server
+pnpm lint         # Run ESLint
 ```
 
-### Extension Development
-```bash
-cd packages/extension
-pnpm build               # Build extension for Chrome
-pnpm watch              # Watch mode for development
-```
+## Tech Stack
 
-### Workspace-wide
-```bash
-pnpm -r build           # Build all packages
-pnpm -r lint            # Lint all packages
-```
+- **Frontend**: Next.js 15, React 19, inline styles (no CSS framework)
+- **Backend**: Are.na API via `are.na` npm package
+- **Deployment**: Vercel
+- **Caching**: Next.js ISR (5-minute revalidation)
 
-## Architecture Notes
+## How It Works
 
-### Type Safety Flow
-1. Shared types defined in `packages/shared/src/types.ts`
-2. tRPC routers in `packages/website/app/api/trpc/` consume these types
-3. Extension imports from `@bookmarks/shared` for type safety when calling API
-4. This ensures end-to-end type safety from browser extension → API → database
-
-### Authentication
-- Simple shared API key (no user accounts in MVP)
-- API key stored in environment variable `API_KEY` on server
-- Extension stores API key in chrome.storage after one-time setup
-- Users set their display name in extension settings (sent as `savedBy` field)
-
-### Database Schema
-```sql
-CREATE TABLE bookmarks (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  url TEXT NOT NULL,
-  title TEXT NOT NULL,
-  note TEXT,
-  saved_by VARCHAR(100) NOT NULL,
-  saved_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-CREATE INDEX idx_saved_at ON bookmarks(saved_at DESC);
-```
-
-### API Endpoints (via tRPC)
-- `bookmarks.create` - Create new bookmark (requires API key)
-- `bookmarks.list` - Get latest 50 bookmarks
-- RSS feed available at `/api/feed.xml` (standard Next.js API route, not tRPC)
-
-### Chrome Extension Flow
-1. User clicks extension icon
-2. Popup grabs current tab URL and title via `chrome.tabs` API
-3. User optionally adds note
-4. Extension POSTs to tRPC API with apiKey, url, title, note, savedBy
-5. Success/error shown in popup
+1. **Add bookmarks**: Use Are.na's Chrome extension to save links to your channel
+2. **Fetch**: Next.js page fetches latest 50 bookmarks from Are.na API
+3. **Display**: Drudge Report style - featured headline + two columns
+4. **Cache**: Pages revalidate every 5 minutes for fast loading
+5. **RSS**: Generated from Are.na channel data
 
 ## Environment Variables
 
-Website requires `.env.local`:
+`packages/website/.env.local`:
 ```
-POSTGRES_URL=your_vercel_postgres_url
-API_KEY=shared_secret_key_here
+ARENA_CHANNEL_SLUG=your-channel-slug-here
+ARENA_CLIENT_ID=your_client_id (optional)
+ARENA_CLIENT_SECRET=your_client_secret (optional)
 ```
+
+**Note:** Client ID/Secret only needed for private channels or write access. Public channels work without authentication.
+
+## Key Files
+
+- `lib/arena.ts` - Fetches bookmarks from Are.na API
+- `lib/types.ts` - TypeScript interface for Bookmark
+- `app/page.tsx` - Homepage with Drudge Report layout
+- `app/api/feed.xml/route.ts` - RSS 2.0 feed generation
+
+## Design Principles
+
+### Drudge Report Aesthetic
+- Times New Roman font
+- Black links, red featured headline
+- All caps titles
+- Minimal styling, no fancy effects
+- Featured bookmark at top (large, red, centered)
+- Two-column layout for remaining bookmarks
+- Tight spacing, information-dense
+
+### Caching Strategy
+- Homepage: `export const revalidate = 300` (5 minutes)
+- RSS Feed: `Cache-Control: public, max-age=300` (5 minutes)
+- Most visitors see cached pages, new bookmarks appear within 5 minutes
 
 ## Deployment
 
-- **Website**: Auto-deploy to Vercel from main branch
-- **Extension**: Load unpacked from `packages/extension/dist` or package for Chrome Web Store
-- Database setup requires running schema SQL in Vercel Postgres dashboard
+1. Push to GitHub
+2. Import to Vercel
+3. Set `ARENA_CHANNEL_SLUG` environment variable
+4. Deploy!
+
+Vercel auto-detects Next.js and sets the root directory to `packages/website`.
 
 ## MVP Scope
 
-What's included:
-- Display last 50 bookmarks (no pagination)
-- Basic API key auth
+**What's included:**
+- Display last 50 bookmarks from Are.na
+- Drudge Report / Web 1.0 aesthetic
 - RSS feed
-- Mobile responsive website
+- Fast loading with caching
+- Mobile responsive
 
-What's NOT included (future enhancements):
-- Search, tags, categories
-- User accounts
-- Archive beyond 50 items
-- Comments
-- Firefox extension
+**What's NOT included:**
+- No database (Are.na is the database)
+- No custom Chrome extension (use Are.na's)
+- No search, tags, or categories
+- No pagination beyond 50 items
+- No user authentication (public channel)
