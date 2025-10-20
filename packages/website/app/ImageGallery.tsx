@@ -55,6 +55,7 @@ export default function ImageGallery({ images }: { images: Bookmark[] }) {
               <img
                 src={bookmark.imageUrl}
                 alt={bookmark.title}
+                loading="lazy"
                 style={{
                   display: 'block',
                   height: '200px',
@@ -88,6 +89,7 @@ export default function ImageGallery({ images }: { images: Bookmark[] }) {
           <img
             src={selectedImage.url}
             alt={selectedImage.title}
+            loading="lazy"
             style={{
               maxWidth: '90vw',
               maxHeight: '90vh',

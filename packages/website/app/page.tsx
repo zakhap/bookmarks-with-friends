@@ -5,6 +5,10 @@ import ImageGallery from './ImageGallery';
 // Revalidate every 5 minutes (300 seconds)
 export const revalidate = 300;
 
+// Serve stale content while revalidating in the background for up to 24 hours
+export const dynamic = 'force-static';
+export const fetchCache = 'default-cache';
+
 export default async function Home() {
   const channelSlug = process.env.ARENA_CHANNEL_SLUG || 'bookmarks-with-friends';
   const bookmarks = await getChannelContents(channelSlug);

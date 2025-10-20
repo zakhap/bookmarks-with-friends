@@ -100,6 +100,7 @@ export default function BookmarkItem({ bookmark, isFeatured }: { bookmark: Bookm
         <img
           src={bookmark.imageUrl}
           alt={bookmark.title}
+          loading="lazy"
           style={{
             position: 'fixed',
             left: `${mousePos.x + 20}px`,

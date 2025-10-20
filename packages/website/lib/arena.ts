@@ -1,62 +1,39 @@
-import Arena from 'are.na';
+import Arena, { type Block, type LinkBlock, type ImageBlock } from 'are.na';
+import { unstable_cache } from 'next/cache';
 import type { Bookmark } from './types';
 
 const arena = new Arena();
 
-export interface ArenaBlock {
-  id: number;
-  title: string;
-  source?: {
-    url: string;
-  };
-  image?: {
-    original: {
-      url: string;
-    };
-    display: {
-      url: string;
-    };
-  };
-  description?: string;
-  description_html?: string;
-  content?: string;
-  user: {
-    username: string;
-    full_name: string;
-  };
-  created_at: string;
-  class: string;
-}
+async function fetchChannelContents(channelSlug: string): Promise<Bookmark[]> {
+  const channel = await arena.channel(channelSlug).contents({ per: 50, sort: 'position', direction: 'desc' });
 
-export async function getChannelContents(channelSlug: string): Promise<Bookmark[]> {
-  try {
-    const channel = await arena.channel(channelSlug).contents({ per: 50, sort: 'position', direction: 'desc' });
-
-    return channel.map((block: ArenaBlock) => {
+  return channel.map((block: Block) => {
       // For Link blocks
-      if (block.class === 'Link' && block.source?.url) {
+      if (block.class === 'Link') {
+        const linkBlock = block as LinkBlock;
         return {
-          id: String(block.id),
+          id: String(linkBlock.id),
           type: 'link' as const,
-          url: block.source.url,
-          title: block.title || block.source.url,
-          note: block.description || block.content,
-          savedBy: block.user.username || block.user.full_name,
-          savedAt: new Date(block.created_at),
+          url: linkBlock.source.url,
+          title: linkBlock.title || linkBlock.source.url,
+          note: linkBlock.description || linkBlock.content,
+          savedBy: linkBlock.user.username || linkBlock.user.full_name,
+          savedAt: new Date(linkBlock.created_at),
         };
       }
 
       // For Image blocks
-      if (block.class === 'Image' && block.image) {
+      if (block.class === 'Image') {
+        const imageBlock = block as ImageBlock;
         return {
-          id: String(block.id),
+          id: String(imageBlock.id),
           type: 'image' as const,
-          url: block.image.original.url,
-          imageUrl: block.image.display.url,
-          title: block.title || 'Untitled Image',
-          note: block.description || block.content,
-          savedBy: block.user.username || block.user.full_name,
-          savedAt: new Date(block.created_at),
+          url: imageBlock.image.original.url,
+          imageUrl: imageBlock.image.display.url,
+          title: imageBlock.title || 'Untitled Image',
+          note: imageBlock.description || imageBlock.content,
+          savedBy: imageBlock.user.username || imageBlock.user.full_name,
+          savedAt: new Date(imageBlock.created_at),
         };
       }
 
@@ -73,18 +50,40 @@ export async function getChannelContents(channelSlug: string): Promise<Bookmark[
       }
 
       // For other block types, treat as generic content
+      const sourceUrl = 'source' in block && block.source && typeof block.source === 'object' && 'url' in block.source ? String(block.source.url) : undefined;
       return {
         id: String(block.id),
         type: 'other' as const,
-        url: block.source?.url,
+        url: sourceUrl,
         title: block.title || `${block.class} Block`,
         note: block.description || block.content,
         savedBy: block.user.username || block.user.full_name,
         savedAt: new Date(block.created_at),
       };
     });
+}
+
+export async function getChannelContents(channelSlug: string): Promise<Bookmark[]> {
+  // Create a cached version of the fetch function with stale-while-revalidate behavior
+  const getCachedChannelContents = unstable_cache(
+    async () => fetchChannelContents(channelSlug),
+    [`channel-${channelSlug}`],
+    {
+      revalidate: 300, // 5 minutes
+      tags: [`channel-${channelSlug}`],
+    }
+  );
+
+  try {
+    return await getCachedChannelContents();
   } catch (error) {
     console.error('Error fetching Are.na channel:', error);
-    return [];
+    // Try to get cached data one more time, even if stale
+    try {
+      return await getCachedChannelContents();
+    } catch {
+      // If all else fails, return empty array
+      return [];
+    }
   }
 }
