@@ -87,18 +87,28 @@ export default function ImageGallery({ images }: { images: Bookmark[] }) {
             animation: 'fadeIn 0.2s ease-out',
           }}
         >
-          <img
-            src={selectedImage.url}
-            alt={selectedImage.title}
-            loading="lazy"
-            style={{
-              maxWidth: '90vw',
-              maxHeight: '90vh',
-              objectFit: 'contain',
-              border: '2px solid #fff',
-              animation: 'scaleIn 0.2s ease-out',
-            }}
-          />
+          <div style={{
+            backgroundColor: '#fff',
+            padding: '20px',
+            animation: 'scaleIn 0.2s ease-out',
+            maxWidth: 'calc(90vw + 44px)',
+            maxHeight: 'calc(90vh + 44px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <img
+              src={selectedImage.url}
+              alt={selectedImage.title}
+              loading="lazy"
+              style={{
+                maxWidth: '90vw',
+                maxHeight: '90vh',
+                objectFit: 'contain',
+                display: 'block',
+              }}
+            />
+          </div>
         </div>
       )}
 
