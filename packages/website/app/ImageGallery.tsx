@@ -58,8 +58,9 @@ export default function ImageGallery({ images }: { images: Bookmark[] }) {
                 loading="lazy"
                 style={{
                   display: 'block',
-                  height: '200px',
+                  height: 'clamp(150px, 30vw, 200px)',
                   width: 'auto',
+                  maxWidth: '100%',
                 }}
               />
             </button>

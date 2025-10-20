@@ -1,8 +1,13 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
-  title: "Bookmarks with Friends",
-  description: "Shared bookmarks from friends",
+  title: "ingroup.news - bookmarks with friends",
+  description: "Curated bookmarks shared with friends",
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({

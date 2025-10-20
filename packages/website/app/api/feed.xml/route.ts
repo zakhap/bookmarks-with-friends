@@ -21,9 +21,9 @@ export async function GET() {
   const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Bookmarks with Friends</title>
+    <title>ingroup.news - bookmarks with friends</title>
     <link>${baseUrl}</link>
-    <description>Shared bookmarks from friends</description>
+    <description>Curated bookmarks shared with friends</description>
     <language>en-us</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <atom:link href="${baseUrl}/api/feed.xml" rel="self" type="application/rss+xml"/>

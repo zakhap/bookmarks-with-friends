@@ -1,6 +1,7 @@
 import { getChannelContents } from '@/lib/arena';
 import BookmarkItem from './BookmarkItem';
 import ImageGallery from './ImageGallery';
+import LocalTime from './LocalTime';
 
 // Revalidate every 5 minutes (300 seconds)
 export const revalidate = 300;
@@ -37,16 +38,24 @@ export default async function Home() {
         marginBottom: '12px',
       }}>
         <h1 style={{
-          fontSize: '48px',
+          fontSize: 'clamp(32px, 8vw, 48px)',
           fontWeight: 'bold',
           margin: '0',
           letterSpacing: '2px',
           lineHeight: '1',
         }}>
-          BOOKMARKS WITH FRIENDS
+          INGROUP.NEWS
         </h1>
         <div style={{
-          fontSize: '9px',
+          fontSize: 'clamp(10px, 2.5vw, 12px)',
+          color: '#666',
+          marginTop: '4px',
+          fontStyle: 'italic',
+        }}>
+          bookmarks with friends
+        </div>
+        <div style={{
+          fontSize: 'clamp(8px, 2vw, 9px)',
           color: '#999',
           marginTop: '6px',
           textTransform: 'uppercase',
@@ -57,10 +66,13 @@ export default async function Home() {
             month: 'short',
             day: 'numeric',
             year: 'numeric',
+            timeZone: 'America/New_York',
           }).toUpperCase()} {now.toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit',
+            timeZone: 'America/New_York',
           }).toUpperCase()} ET
+          <LocalTime etTime={now} />
           {' '}
           <a href="/api/feed.xml" style={{ color: '#000000', textDecoration: 'underline' }}>
             [RSS]
@@ -97,10 +109,10 @@ export default async function Home() {
                 Links
               </h2>
 
-              {/* Two Column Layout for Links */}
+              {/* Two Column Layout for Links (single column on mobile) */}
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))',
                 gap: '40px',
               }}>
                 <div>
