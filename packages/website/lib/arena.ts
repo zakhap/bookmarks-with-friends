@@ -1,4 +1,4 @@
-const Arena = require('are.na');
+import Arena from 'are.na';
 import type { Bookmark } from './types';
 
 const arena = new Arena();

@@ -1,5 +1,4 @@
 import { getChannelContents } from '@/lib/arena';
-import type { Bookmark } from '@/lib/types';
 import BookmarkItem from './BookmarkItem';
 import ImageGallery from './ImageGallery';
 
@@ -199,9 +198,9 @@ export default async function Home() {
         color: '#999',
       }}>
         <div style={{ marginBottom: '6px' }}>
-          <a href="/" style={{ color: '#000000', textDecoration: 'none', margin: '0 8px' }}>
+          <span style={{ color: '#000000', margin: '0 8px' }}>
             HOME
-          </a>
+          </span>
           *
           <a href="/api/feed.xml" style={{ color: '#000000', textDecoration: 'none', margin: '0 8px' }}>
             RSS

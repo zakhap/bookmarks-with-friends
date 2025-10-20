@@ -28,11 +28,12 @@ export async function GET() {
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <atom:link href="${baseUrl}/api/feed.xml" rel="self" type="application/rss+xml"/>
     ${bookmarks
+      .filter((bookmark) => bookmark.url) // Only include items with URLs in RSS feed
       .map(
         (bookmark) => `
     <item>
       <title>${escapeXml(bookmark.title)}</title>
-      <link>${escapeXml(bookmark.url)}</link>
+      <link>${escapeXml(bookmark.url!)}</link>
       <guid isPermaLink="false">${bookmark.id}</guid>
       <pubDate>${new Date(bookmark.savedAt).toUTCString()}</pubDate>
       <author>${escapeXml(bookmark.savedBy)}</author>
