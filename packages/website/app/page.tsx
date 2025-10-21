@@ -11,7 +11,7 @@ export const dynamic = 'force-static';
 export const fetchCache = 'default-cache';
 
 export default async function Home() {
-  const channelSlug = process.env.ARENA_CHANNEL_SLUG || 'bookmarks-with-friends';
+  const channelSlug = process.env.ARENA_CHANNEL_SLUG || 'ingroup-news';
   const bookmarks = await getChannelContents(channelSlug);
   const now = new Date();
 
@@ -174,28 +174,11 @@ export default async function Home() {
                       <div style={{
                         fontSize: '14px',
                         lineHeight: '1.6',
-                        marginBottom: '8px',
                         whiteSpace: 'pre-wrap',
                       }}>
                         {bookmark.note}
                       </div>
                     )}
-                    <div style={{
-                      fontSize: '10px',
-                      color: '#999',
-                      marginTop: '8px',
-                      borderTop: '1px solid #DDD',
-                      paddingTop: '8px',
-                    }}>
-                      {bookmark.savedBy} • {new Date(bookmark.savedAt).toLocaleDateString('en-US', {
-                        month: '2-digit',
-                        day: '2-digit',
-                        year: '2-digit',
-                      })} {new Date(bookmark.savedAt).toLocaleTimeString('en-US', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </div>
                   </div>
                 ))}
               </div>

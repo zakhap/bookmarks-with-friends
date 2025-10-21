@@ -2,23 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import type { Bookmark } from '@/lib/types';
-
-function formatDate(date: Date): string {
-  const d = new Date(date);
-  return d.toLocaleDateString('en-US', {
-    month: '2-digit',
-    day: '2-digit',
-    year: '2-digit',
-  });
-}
-
-function formatTime(date: Date): string {
-  const d = new Date(date);
-  return d.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
+import NewTag from './NewTag';
 
 export default function BookmarkItem({ bookmark, isFeatured }: { bookmark: Bookmark; isFeatured?: boolean }) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -45,36 +29,40 @@ export default function BookmarkItem({ bookmark, isFeatured }: { bookmark: Bookm
       position: 'relative',
     }}>
       {isClickable ? (
-        <a
-          href={bookmark.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
-          style={{
-            color: isFeatured ? '#CC0000' : '#000000',
-            textDecoration: 'underline',
-            fontSize: isFeatured ? '24px' : '14px',
-            fontWeight: isFeatured ? 'bold' : 'normal',
-            display: 'block',
-            wordWrap: 'break-word',
-            overflowWrap: 'break-word',
-            hyphens: 'auto',
-          }}
-        >
-          {bookmark.title.toUpperCase()}
-        </a>
+        <>
+          <a
+            href={bookmark.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+            style={{
+              color: isFeatured ? '#CC0000' : '#000000',
+              textDecoration: 'underline',
+              fontSize: isFeatured ? '24px' : '14px',
+              fontWeight: isFeatured ? 'bold' : 'normal',
+              display: 'inline',
+              wordWrap: 'break-word',
+              overflowWrap: 'break-word',
+              hyphens: 'auto',
+            }}
+          >
+            {bookmark.title.toUpperCase()}
+          </a>
+          <NewTag savedAt={bookmark.savedAt} />
+        </>
       ) : (
         <span style={{
           color: isFeatured ? '#CC0000' : '#000000',
           fontSize: isFeatured ? '24px' : '14px',
           fontWeight: isFeatured ? 'bold' : 'normal',
-          display: 'block',
+          display: 'inline',
           wordWrap: 'break-word',
           overflowWrap: 'break-word',
           hyphens: 'auto',
         }}>
           {bookmark.title.toUpperCase()}
+          <NewTag savedAt={bookmark.savedAt} />
         </span>
       )}
 
@@ -90,10 +78,6 @@ export default function BookmarkItem({ bookmark, isFeatured }: { bookmark: Bookm
           {bookmark.note}
         </div>
       )}
-
-      <div style={{ fontSize: '10px', color: '#999', marginTop: '2px' }}>
-        {bookmark.savedBy} • {formatDate(bookmark.savedAt)} {formatTime(bookmark.savedAt)}
-      </div>
 
       {/* Hover image preview */}
       {bookmark.type === 'image' && bookmark.imageUrl && isHovering && (

@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getChannelContents } from '@/lib/arena';
 
+// Revalidate every 5 minutes (300 seconds) - matches homepage
+export const revalidate = 300;
+
+// Use static generation with cache
+export const dynamic = 'force-static';
+export const fetchCache = 'default-cache';
+
 function escapeXml(unsafe: string): string {
   return unsafe
     .replace(/&/g, '&amp;')
@@ -11,7 +18,7 @@ function escapeXml(unsafe: string): string {
 }
 
 export async function GET() {
-  const channelSlug = process.env.ARENA_CHANNEL_SLUG || 'bookmarks-with-friends';
+  const channelSlug = process.env.ARENA_CHANNEL_SLUG || 'ingroup-news';
   const bookmarks = await getChannelContents(channelSlug);
 
   const baseUrl = process.env.VERCEL_URL
